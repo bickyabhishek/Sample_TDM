@@ -16,7 +16,7 @@ import chromadb
 import pandas as pd
  
 # Specify the relative path to the .env file
-dotenv_path = os.path.join(os.path.dirname(__file__), '.streamlit/.env')
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 persist_directory = "./chroma_db"
 load_dotenv(dotenv_path)
 client = chromadb.PersistentClient(path=persist_directory)
