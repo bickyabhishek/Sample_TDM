@@ -1,0 +1,50 @@
+      - name: Load Allure Report History
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: ./static_reports/allure-report/qa/Smoke/Smoke-NGRA
+        continue-on-error: true
+        if: always()
+
+      - name: Run Tests with Coverage
+        run: |
+          echo "Running tests and generating coverage report..."
+          npx nyc --reporter=html --reporter=text \
+          npx wdio wdio.conf.ngra.js --suite testsuite1 -p 443 --protocol https -h a200206-idt-osqa-selenium-hub.3300.aws-int.thomsonreuters.com
+        continue-on-error: false
+        if: always()
+
+      - name: Merge Allure History
+        run: |
+          echo "Merging history files for Allure trends..."
+          mkdir -p ./allure-results/history
+          if [ -d "./static_reports/allure-report/qa/Smoke/Smoke-NGRA/history" ]; then
+            for file in ./static_reports/allure-report/qa/Smoke/Smoke-NGRA/history/*.json; do
+              filename=$(basename "$file")
+              if [ -f "./allure-results/history/$filename" ]; then
+                echo "Merging $filename..."
+                jq -s '.[0] + .[1]' "./allure-results/history/$filename" "$file" > "./allure-results/history/merged_$filename"
+                mv "./allure-results/history/merged_$filename" "./allure-results/history/$filename"
+              else
+                echo "Copying $filename..."
+                cp "$file" "./allure-results/history/"
+              fi
+            done
+          else
+            echo "No previous history found. Using current run as history."
+          fi
+
+      - name: Build Allure Report with History
+        run: |
+          echo "Generating Allure report with merged history..."
+          npx allure generate ./allure-results --clean -o ./allure-report
+
+      - name: Publish Allure Report and History
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./allure-report
+          destination_dir: ./static_reports/allure-report/qa/Smoke/Smoke-NGRA
+          keep_files: true
+        if: always()
