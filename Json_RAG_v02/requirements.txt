@@ -1,0 +1,14 @@
+langchain_community
+langchain
+streamlit
+streamlit_chat
+langchain-google-genai
+chromadb
+langchain-chroma
+transformers
+pillow
+ultralytics
+torch
+scikit-image
+matplotlib
+opencv-python
